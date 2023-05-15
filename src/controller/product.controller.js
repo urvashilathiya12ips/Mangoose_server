@@ -42,7 +42,31 @@ const addproduct = async (req, res) => {
     }
 }
 
+const deleteProduct = async(req,res)=>{
+    try{
+        let isdelete=await Products.findByIdAndDelete(req.params.id)
+        if(isdelete){
+            return res.send(check)
+        }else{
+            return res.send("record not find")
+        }
+    }
+    catch(e){
+        return res.send("not deleted")
+    }
+}
+
+const updateProduct= async(req,res)=>{
+    MyModel.findOneAndUpdate(query, req.newData, {upsert: true}, function(err, doc) {
+        if (err) return res.send(500, {error: err});
+        return res.send('Succesfully saved.');
+    });
+}
+
+
 module.exports = {
-    addproduct
+    addproduct,
+    deleteProduct,
+    updateProduct
 }
 
