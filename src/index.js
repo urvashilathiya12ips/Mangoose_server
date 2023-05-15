@@ -22,7 +22,9 @@ app.use(express.static("./public/assets/images/"));
 
 //Routes
 const userRoutes = require('./router/user.router')
+const productRoutes = require('./router/product.router')
 app.use('/api/user', userRoutes)
+app.use('/api/product', productRoutes)
 
 
 app.get("/", (req, res) => {
