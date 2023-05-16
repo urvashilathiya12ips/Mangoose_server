@@ -96,3 +96,53 @@ module.exports = {
     signin,
     profile
 }
+
+
+
+// const updateProduct = async (req, res) => {
+//     let id = req.params.prodid;
+//     dataToUpdate = req.body
+//     if (!req.file?.filename) {
+//         if (Object.keys(req.body).length == 0) {
+//             return res.status(404).send({ "message": "body is required" });
+//         }
+//     }
+//     else {
+//         //if there is selectd file in request
+//         dataToUpdate.image = req.file?.filename
+//     }
+//     let product = await Product.findByPk(id)
+//     Product.update(
+//         dataToUpdate,
+//         {
+//             where: {
+//                 id
+//             }
+//         }
+//     ).then(count => {
+//         if (count > 0) {
+//             if (dataToUpdate.image) {
+//                 //removing the old image
+//                 fs.unlinkSync(`public/assets/images/${product.image}`)
+//             }
+//             return res.status(201).send({
+//                 "status": "201",
+//                 "message": "updated"
+//             })
+//         }
+//         else {
+//             return res.status(400).send({
+//                 "status": "400",
+//                 "message": "fail"
+//             })
+//         }
+//     }).catch(error => {
+
+//         return res.status(400).send({
+//             "status": "400",
+//             "message": "fail"
+//         })
+//     })
+
+
+// }
