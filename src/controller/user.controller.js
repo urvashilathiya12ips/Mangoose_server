@@ -107,23 +107,18 @@ const profile = async (req, res) => {
 };
 
 const profile_update = async (req, res) => {
-  const { firstName, lastName, email, password } = req.body;
-  const updatesobj = { firstName, lastName };
+  const updatesObj = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+  };
   try {
-    if (!updatesobj.firstName && !updatesobj.lastName) {
-      return res
-        .status(500)
-        .send({ status: 500, message: "Filds Cant Be empty" });
-    } else if (!updatesobj.firstName) {
-      return res
-        .status(500)
-        .send({ status: 500, message: "FirstName is Can't be empty" });
-    } else if (!updatesobj.lastName) {
-      return res
-        .status(500)
-        .send({ status: 500, message: "LastName is Can't be empty" });
+    if (!updatesObj.firstName || !updatesObj.lastName) {
+      return res.status(500).send({
+        status: 500,
+        message: "FristName and Lastname Can't be Empty",
+      });
     } else {
-      Users.findByIdAndUpdate(req.params.id, updatesobj, { new: true })
+      Users.findByIdAndUpdate(req.params.id, updatesObj, { new: true })
         .then((updatedUser) => {
           return res
             .status(200)
@@ -132,7 +127,7 @@ const profile_update = async (req, res) => {
         .catch((error) => {
           return res
             .status(404)
-            .send({ status: 404, message: "Data not found" });
+            .send({ status: 404, message: "User Not Found" });
         });
     }
   } catch (e) {
