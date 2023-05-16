@@ -1,5 +1,6 @@
 const Products = require("../../model/Products");
 const fs = require("fs");
+
 const addproduct = async (req, res) => {
   if (Object.keys(req.body).length == 0) {
     return res.status(500).send({
@@ -45,27 +46,6 @@ const addproduct = async (req, res) => {
   }
 };
 
-const searchbycategory = async (req, res) => {
-  try {
-    const products = await Products.find({
-      category: req.params.category.toLowerCase(),
-    });
-    if (products.length === 0) {
-      return res
-        .status(404)
-        .send({ status: 404, message: "Category Not Found" });
-    } else {
-      return res
-        .status(200)
-        .send({ status: 200, message: "All Product Found", data: products });
-    }
-  } catch (error) {
-    return res.status(400).send({
-      status: 400,
-      message: "Something went wrong",
-    });
-  }
-};
 
 const getbycategory = async (req, res) => {
   try {
@@ -106,9 +86,35 @@ const getbestseller = async (req, res) => {
     });
   }
 };
+
+const deleteProduct = async (req, res) => {
+    try {
+        let isdelete = await Products.findByIdAndDelete(req.params.id)
+        if (isdelete) {
+            //removing image
+            fs.unlinkSync(`public/assets/images/${isdelete.image}`)
+            return res.status(200).send({
+                status: 200,
+                message: "Product deleted"
+            })
+        } else {
+            return res.status(404).send({
+                status: 404,
+                message: "Record not found"
+            })
+        }
+    }
+    catch (e) {
+        return res.status(400).send({
+            status: 400,
+            message: "Something went wrong"
+        })
+    }
+}
+
 module.exports = {
-  addproduct,
-  searchbycategory,
-  getbycategory,
-  getbestseller,
-};
+    addproduct,
+    getbycategory,
+    getbestseller,
+    deleteProduct
+  };

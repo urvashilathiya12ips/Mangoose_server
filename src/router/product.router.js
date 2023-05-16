@@ -6,6 +6,7 @@ const {
   searchbycategory,
   getbycategory,
   getbestseller,
+  deleteProduct
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -24,8 +25,9 @@ const upload = multer({ storage });
 
 ////////////Product related routes/////////////
 router.post("/addproduct", upload.single("image"), addproduct);
-router.get("/searchbycategory/:category", searchbycategory);
 router.get("/getbycategory/:category", getbycategory);
 router.get("/getbestseller", getbestseller);
+router.delete('/deleteproduct/:id',deleteProduct)
+
 
 module.exports = router;
