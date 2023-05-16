@@ -46,10 +46,9 @@ const addproduct = async (req, res) => {
 };
 
 const searchByCategory = async (req, res) => {
-  const category = req.query.category;
-  // ? req.query.category.toLowerCase()
-  // : undefined;
-  console.log(category);
+  const category = req.query.category
+    ? req.query.category.toLowerCase()
+    : undefined;
   try {
     if (!category) {
       return res
@@ -57,11 +56,10 @@ const searchByCategory = async (req, res) => {
         .send({ status: 404, message: "Product Not Found" });
     }
     const products = await Products.find({ category: category });
-    console.log(products);
     if (products.length === 0) {
       return res
-        .status(400)
-        .send({ status: 400, message: "Category Not Found" });
+        .status(404)
+        .send({ status: 404, message: "Category Not Found" });
     } else {
       return res
         .status(200)
