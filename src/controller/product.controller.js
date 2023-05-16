@@ -1,4 +1,5 @@
 const Products = require("../../model/Products");
+const Carts = require("../../model/Cart");
 const fs = require("fs");
 
 const addproduct = async (req, res) => {
@@ -88,33 +89,90 @@ const getbestseller = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
-    try {
-        let isdelete = await Products.findByIdAndDelete(req.params.id)
-        if (isdelete) {
-            //removing image
-            fs.unlinkSync(`public/assets/images/${isdelete.image}`)
-            return res.status(200).send({
-                status: 200,
-                message: "Product deleted"
-            })
-        } else {
-            return res.status(404).send({
-                status: 404,
-                message: "Record not found"
-            })
-        }
+  try {
+    let isdelete = await Products.findByIdAndDelete(req.params.id)
+    if (isdelete) {
+      //removing image
+      fs.unlinkSync(`public/assets/images/${isdelete.image}`)
+      return res.status(200).send({
+        status: 200,
+        message: "Product deleted"
+      })
+    } else {
+      return res.status(404).send({
+        status: 404,
+        message: "Record not found"
+      })
     }
-    catch (e) {
-        return res.status(400).send({
-            status: 400,
-            message: "Something went wrong"
-        })
-    }
+  }
+  catch (e) {
+    return res.status(400).send({
+      status: 400,
+      message: "Something went wrong"
+    })
+  }
+}
+
+const addtocart = async (req, res) => {
+  user_id = req.user.id
+  const { product_id } = req.body
+  // return res.send({user_id,product_id})
+  if (!product_id) {
+    return res.status(404).send({
+      status:404,
+      message: 'Product Id is required'
+    })
+  }
+  alreadyInserted = await Carts.count({ user_id, product_id })
+  if (alreadyInserted != 0) {
+    return res.status(403).send({
+      status: 403,
+      message: "Already inserted"
+    })
+  }
+  try {
+    let newCart = new Carts({
+      user_id,
+      product_id,
+      qty: 1
+    })
+    await newCart.save()
+    return res.status(201).send({
+      status:201,
+      message: 'Product added'
+    })
+  }
+  catch (error) {
+    return res.status(400).send({
+      status:400,
+      message: 'Unable to add product to cart',
+    })
+  }
+}
+
+const getUserCart =async (req,res)=>{
+  try{
+    user_id = req.user.id   
+    let UserProduct = await Carts.find({user_id}).populate({ path: 'product_id', options: { strictPopulate: false } })
+    return res.send({
+      status:200,
+      message:"Success",
+      data:UserProduct
+    });
+  }catch(error){
+    return res.send({
+      status:400,
+      message:"Something went wrong",
+    });
+  }
+
 }
 
 module.exports = {
-    addproduct,
-    getbycategory,
-    getbestseller,
-    deleteProduct
-  };
+  addproduct,
+  getbycategory,
+  getbestseller,
+  deleteProduct,
+  addtocart,
+  getUserCart
+};

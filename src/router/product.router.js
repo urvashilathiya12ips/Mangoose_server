@@ -3,10 +3,11 @@ const router = new express.Router();
 const multer = require("multer");
 const {
   addproduct,
-  searchbycategory,
+  addtocart,
   getbycategory,
   getbestseller,
-  deleteProduct
+  deleteProduct,
+  getUserCart
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -24,10 +25,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 ////////////Product related routes/////////////
-router.post("/addproduct", upload.single("image"), addproduct);
+router.post("/addproduct", upload.single("image"), verifytoken,addproduct);
 router.get("/getbycategory/:category", getbycategory);
 router.get("/getbestseller", getbestseller);
-router.delete('/deleteproduct/:id',deleteProduct)
+router.delete('/deleteproduct/:id',verifytoken,deleteProduct)
+router.post('/addtocart',verifytoken,addtocart)
+router.get('/getusercart',verifytoken,getUserCart)
 
 
 module.exports = router;
