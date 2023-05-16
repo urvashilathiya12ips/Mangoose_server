@@ -4,7 +4,7 @@ const multer = require('multer')
 const {
     addproduct,
     deleteProduct,
-    updateProduct
+  
 } = require('../controller/product.controller')
 
 const verifytoken = require('../../middleware/verifytoken')
@@ -26,7 +26,7 @@ const upload = multer({ storage })
 ////////////Product related routes/////////////
 router.post('/addproduct', upload.single('image'),addproduct)
 router.delete('/deleteproduct/:id',deleteProduct)
-// router.patch('updateproduct/:id',updateProduct)
+
 
 
 module.exports = router
