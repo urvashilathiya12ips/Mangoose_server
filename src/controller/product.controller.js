@@ -15,10 +15,10 @@ const addproduct = async (req, res) => {
                 message: 'Product Image is required'
             })
         }
-        if (!req.body.price || !req.body.name) {
+        if (!req.body.price || !req.body.name || !req.body.category || !req.body.stock) {
             return res.status(400).send({
-                status: 400,
-                message: 'Product Name & Price are required'
+                status:400,
+                message: 'Product Name, Price,stock,category are required'
             })
         }
         try {

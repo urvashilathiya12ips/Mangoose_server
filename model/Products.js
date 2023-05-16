@@ -8,12 +8,10 @@ const ProductsSchema = new Schema({
   },
   desc: {
     type: String,
-     required: true
   },
   image: {
     type: String,
     required: true,
-    unique:true
   },
   price: {
     type: Number,
@@ -25,7 +23,7 @@ const ProductsSchema = new Schema({
   },
   bestSeller:{
     type: Boolean,
-    required:true,
+    default:false
   },
   category:{
     type: String,
