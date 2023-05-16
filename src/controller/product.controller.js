@@ -45,7 +45,7 @@ const addproduct = async (req, res) => {
   }
 };
 
-const searchByCategory = async (req, res) => {
+const searchbycategory = async (req, res) => {
   const category = req.query.category
     ? req.query.category.toLowerCase()
     : undefined;
@@ -73,7 +73,51 @@ const searchByCategory = async (req, res) => {
   }
 };
 
+const getbycategory = async (req, res) => {
+  try {
+    if (Object.keys(req.params.category).length === 0) {
+      return res.status(400).send("Error: No parameters provided");
+    }
+    const products = await Products.find({ category: req.params.category });
+    if (products.length === 0) {
+      return res
+        .status(404)
+        .send({ status: 404, message: "Category Not Found" });
+    } else {
+      return res
+        .status(200)
+        .send({ status: 200, message: "All Product Found", data: products });
+    }
+  } catch (error) {
+    return res.status(400).send({
+      status: 400,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const getbestseller = async (req, res) => {
+  try {
+    const products = await Products.find({ bestSeller: true });
+    if (products.length === 0) {
+      return res
+        .status(404)
+        .send({ status: 404, message: "Category Not Found" });
+    } else {
+      return res
+        .status(200)
+        .send({ status: 200, message: "All Product Found", data: products });
+    }
+  } catch (error) {
+    return res.status(400).send({
+      status: 400,
+      message: "Something went wrong",
+    });
+  }
+};
 module.exports = {
   addproduct,
-  searchByCategory,
+  searchbycategory,
+  getbycategory,
+  getbestseller,
 };

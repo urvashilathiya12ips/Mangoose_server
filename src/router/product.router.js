@@ -3,7 +3,9 @@ const router = new express.Router();
 const multer = require("multer");
 const {
   addproduct,
-  searchByCategory,
+  searchbycategory,
+  getbycategory,
+  getbestseller,
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -22,6 +24,8 @@ const upload = multer({ storage });
 
 ////////////Product related routes/////////////
 router.post("/addproduct", upload.single("image"), addproduct);
-router.get("/searchByCategory", searchByCategory);
+router.get("/searchbycategory", searchbycategory);
+router.get("/getbycategory/:category", getbycategory);
+router.get("/getbestseller", getbestseller);
 
 module.exports = router;
