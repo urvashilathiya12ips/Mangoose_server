@@ -3,10 +3,10 @@ const router = new express.Router();
 const multer = require("multer");
 const {
   addproduct,
-  searchbycategory,
   getbycategory,
   getbestseller,
-  deleteProduct
+  deleteProduct,
+  searchbyname,
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -27,7 +27,7 @@ const upload = multer({ storage });
 router.post("/addproduct", upload.single("image"), addproduct);
 router.get("/getbycategory/:category", getbycategory);
 router.get("/getbestseller", getbestseller);
-router.delete('/deleteproduct/:id',deleteProduct)
-
+router.delete("/deleteproduct/:id", deleteProduct);
+router.get("/searchbyname/:name", searchbyname);
 
 module.exports = router;
