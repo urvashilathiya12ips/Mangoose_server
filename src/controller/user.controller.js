@@ -16,7 +16,7 @@ const signup = async (req, res) => {
 
   //checking req has body
   if (Object.keys(userobj).length == 0) {
-    handleemptybody(res, "Body Is Empty");
+    return handleemptybody(res, "Body Is Empty");
   }
   if (!userobj.firstName) {
     errorlist.message.push("FirstName is required");
@@ -36,7 +36,8 @@ const signup = async (req, res) => {
   }
   try {
     if (errorlist.message.length != 0) {
-      throw ("Error", errorlist);
+      //throw ("Error", errorlist);
+      return handlebadrequest(res, errorlist.message);
     }
     //Encrypting the password
     userobj.password = await bcrypt.hash(userobj.password, 7);
@@ -44,18 +45,14 @@ const signup = async (req, res) => {
     //checking already existing user
     let isNewUser = await Users.count({ email: userobj.email });
     if (isNewUser == 1) {
-      handlebadrequest(res, "Email Alredy Exists");
+      return handlebadrequest(res, "Email Alredy Exists");
     }
     const newUser = new Users(userobj);
     newUser.save();
-    handleSuccessMsg(res, "User Added", newUser);
+    return handleSuccessMsg(res, "User Added", newUser);
   } catch (error) {
-    if (error.errors) {
-      //To catch DB error
-      handlebadrequest(res, "Unable to add user");
-    } else {
-      handlebadrequest(res, error.message);
-    }
+    //To catch DB error
+    return handlebadrequest(res, "Unable to add user");
   }
 };
 
