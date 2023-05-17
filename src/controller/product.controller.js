@@ -46,10 +46,11 @@ const addproduct = async (req, res) => {
   }
 };
 
-
 const getbycategory = async (req, res) => {
+  const name = req.params.category;
+  const regex = new RegExp(`^${name}$`, "i");
   try {
-    const products = await Products.find({ category: req.params.category });
+    const products = await Products.find({ category: regex });
     if (products.length === 0) {
       return res
         .status(404)
@@ -88,33 +89,55 @@ const getbestseller = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
-    try {
-        let isdelete = await Products.findByIdAndDelete(req.params.id)
-        if (isdelete) {
-            //removing image
-            fs.unlinkSync(`public/assets/images/${isdelete.image}`)
-            return res.status(200).send({
-                status: 200,
-                message: "Product deleted"
-            })
-        } else {
-            return res.status(404).send({
-                status: 404,
-                message: "Record not found"
-            })
-        }
+  try {
+    let isdelete = await Products.findByIdAndDelete(req.params.id);
+    if (isdelete) {
+      //removing image
+      fs.unlinkSync(`public/assets/images/${isdelete.image}`);
+      return res.status(200).send({
+        status: 200,
+        message: "Product deleted",
+      });
+    } else {
+      return res.status(404).send({
+        status: 404,
+        message: "Record not found",
+      });
     }
-    catch (e) {
-        return res.status(400).send({
-            status: 400,
-            message: "Something went wrong"
-        })
+  } catch (e) {
+    return res.status(400).send({
+      status: 400,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const searchbyname = async (req, res) => {
+  const name = req.params.name;
+  const regex = new RegExp(`.*${name}.*`, "i");
+  try {
+    const results = await Products.find({ name: regex });
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .send({ status: 404, message: "Product Not Found" });
+    } else {
+      return res
+        .status(200)
+        .send({ status: 200, message: "success", data: results });
     }
-}
+  } catch (error) {
+    return res.status(400).send({
+      status: 400,
+      message: "Something went wrong",
+    });
+  }
+};
 
 module.exports = {
-    addproduct,
-    getbycategory,
-    getbestseller,
-    deleteProduct
-  };
+  addproduct,
+  getbycategory,
+  getbestseller,
+  deleteProduct,
+  searchbyname,
+};
