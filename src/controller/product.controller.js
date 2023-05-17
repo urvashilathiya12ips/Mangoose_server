@@ -119,7 +119,7 @@ const addtocart = async (req, res) => {
   // return res.send({user_id,product_id})
   if (!product_id) {
     return res.status(404).send({
-      status:404,
+      status: 404,
       message: 'Product Id is required'
     })
   }
@@ -138,34 +138,98 @@ const addtocart = async (req, res) => {
     })
     await newCart.save()
     return res.status(201).send({
-      status:201,
+      status: 201,
       message: 'Product added'
     })
   }
   catch (error) {
     return res.status(400).send({
-      status:400,
+      status: 400,
       message: 'Unable to add product to cart',
     })
   }
 }
 
-const getUserCart =async (req,res)=>{
-  try{
-    user_id = req.user.id   
-    let UserProduct = await Carts.find({user_id}).populate({ path: 'product_id', options: { strictPopulate: false } })
+const getUserCart = async (req, res) => {
+  try {
+    user_id = req.user.id
+    let UserProduct = await Carts.find({ user_id }).populate({ path: 'product_id', options: { strictPopulate: false } })
     return res.send({
-      status:200,
-      message:"Success",
-      data:UserProduct
+      status: 200,
+      message: "Success",
+      data: UserProduct
     });
-  }catch(error){
+  } catch (error) {
     return res.send({
-      status:400,
-      message:"Something went wrong",
+      status: 400,
+      message: "Something went wrong",
     });
   }
 
+}
+
+const removeFromCart = async (req, res) => {
+  // const { user_id, product_id } = req.body
+  let user_id = req.user.id
+  let product_id = req.params.productid;
+  if (!product_id) {
+    return res.status(400).send({
+      status:400,
+      message: 'Product Id is required'
+    })
+  }
+  try {
+    const result = await Carts.deleteOne({
+      user_id: user_id,
+      product_id: product_id
+    });
+    if (result.deletedCount === 0) {
+      return res.status(400).send({
+        status:400,
+        message: "Invalid product_id"
+      })
+    }
+    return res.status(200).send({
+      status:200,
+      message: "Product removed"
+    })
+  }
+  catch (error) {
+    return res.status(400).send({
+      status:400,
+      message: "Something went wrong"
+    })
+  }
+}
+
+const updatecart = (req, res) => {
+  let cart_id = req.params.cartid
+  if (Object.keys(req.body).length == 0) {
+      return res.status(500).send({ status:500,message: "Empty body" })
+  }
+  Carts.updateOne(
+    { _id: cart_id },
+    { qty: req.body.qty }
+  ).then(result => {
+    console.log(result);
+      if (result.matchedCount > 0) {
+          return res.status(201).send({
+              status: 201,
+              message: "updated"
+          })
+      }
+      else {
+          return res.status(400).send({
+              status: 400,
+              message: "Invalid cart id"
+          })
+      }
+  }).catch(error => {
+      return res.status(400).send({
+          status: 400,
+          message: "Something went wrong"
+      })
+  })
 }
 
 module.exports = {
@@ -174,5 +238,7 @@ module.exports = {
   getbestseller,
   deleteProduct,
   addtocart,
-  getUserCart
+  getUserCart,
+  removeFromCart,
+  updatecart
 };

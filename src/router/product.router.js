@@ -7,7 +7,9 @@ const {
   getbycategory,
   getbestseller,
   deleteProduct,
-  getUserCart
+  getUserCart,
+  removeFromCart,
+  updatecart
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -31,6 +33,8 @@ router.get("/getbestseller", getbestseller);
 router.delete('/deleteproduct/:id',verifytoken,deleteProduct)
 router.post('/addtocart',verifytoken,addtocart)
 router.get('/getusercart',verifytoken,getUserCart)
+router.delete('/removefromcart/:productid',verifytoken,removeFromCart)
+router.put('/updatecart/:cartid',verifytoken,updatecart)
 
 
 module.exports = router;
