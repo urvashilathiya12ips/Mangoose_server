@@ -2,15 +2,10 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const CartsSchema = new Schema({
-    qty: {
-      type: Number,
-      required: true,
-      default:1
-    },
-    product_id:{type:Schema.Types.ObjectId,ref:"Products"},
-    user_id:{type:Schema.Types.ObjectId,ref:"Users"}
-    
-  });
+  user_id: {type: mongoose.Schema.Types.ObjectID, ref: "Users"},
+  product_id: {type: mongoose.Schema.Types.ObjectID, ref: "Products"},
+  qty: {type: Number, default: 1},
+});
 
 const Carts = mongoose.model("Carts", CartsSchema);
 

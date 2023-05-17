@@ -115,7 +115,7 @@ const profile_update = async (req, res) => {
     if (!updatesObj.firstName || !updatesObj.lastName) {
       return res.status(500).send({
         status: 500,
-        message: "FristName and Lastname Can't be Empty",
+        message: "FirstName and Lastname Can't be Empty",
       });
     } else {
       Users.findByIdAndUpdate(req.params.id, updatesObj, { new: true })
