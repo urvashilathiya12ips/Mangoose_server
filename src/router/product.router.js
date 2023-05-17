@@ -9,7 +9,8 @@ const {
   deleteProduct,
   getUserCart,
   removeFromCart,
-  updatecart
+  updatecart,
+  searchbyname,
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -35,6 +36,6 @@ router.post('/addtocart',verifytoken,addtocart)
 router.get('/getusercart',verifytoken,getUserCart)
 router.delete('/removefromcart/:productid',verifytoken,removeFromCart)
 router.put('/updatecart/:cartid',verifytoken,updatecart)
-
+router.get("/searchbyname/:name", searchbyname);
 
 module.exports = router;
