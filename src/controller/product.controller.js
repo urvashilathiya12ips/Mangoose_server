@@ -1,5 +1,6 @@
 const Products = require("../../model/Products");
 const fs = require("fs");
+const handleStatusCodeError = require("../../middleware/errorHandling");
 
 const addproduct = async (req, res) => {
   if (Object.keys(req.body).length == 0) {
@@ -52,19 +53,12 @@ const getbycategory = async (req, res) => {
   try {
     const products = await Products.find({ category: regex });
     if (products.length === 0) {
-      return res
-        .status(404)
-        .send({ status: 404, message: "Category Not Found" });
+      handleStatusCodeError(res, 400, "Category Not Found");
     } else {
-      return res
-        .status(200)
-        .send({ status: 200, message: "success", data: products });
+      handleStatusCodeError(res, 200, "success", products);
     }
   } catch (error) {
-    return res.status(400).send({
-      status: 400,
-      message: "Something went wrong",
-    });
+    handleStatusCodeError(res, 400, "Something went wrong");
   }
 };
 
