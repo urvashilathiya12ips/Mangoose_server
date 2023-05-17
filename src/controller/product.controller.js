@@ -1,5 +1,6 @@
 const Products = require('../../model/Products')
 const fs = require("fs");
+const allFieldsRequired = require('../utils/function');
 const addproduct = async (req, res) => {
     if (Object.keys(req.body).length == 0) {
         return res.status(500).send({
@@ -17,7 +18,7 @@ const addproduct = async (req, res) => {
         }
         if (!req.body.price || !req.body.name || !req.body.category || !req.body.stock) {
             return res.status(400).send({
-                status:400,
+                status: 400,
                 message: 'Product Name, Price,stock,category are required'
             })
         }
@@ -67,11 +68,48 @@ const deleteProduct = async (req, res) => {
     }
 }
 
+const updateProduct = async (req, res) => {
+    const { filename } = req.file
+    const { name, price, stock, desc, bestSeller, category } = req.body
+    const { id } = req.params
+    try {
+
+        const isAllFieldRequired = allFieldsRequired([name, price, stock, desc, bestSeller, category])
+        if (isAllFieldRequired) return res.status(400).json({
+            type: "error",
+            message: "All fields are required."
+        })
+
+        const response = await Products.findByIdAndUpdate(id, { image: filename, ...req.body })
+
+        if (response) {
+            const data = await Products.findById(id)
+            if (!data) return res.status(404).json({
+                type: "error",
+                message: "Product not found"
+            })
+            return res.status(200).json({
+                type: "success",
+                data
+            })
+        } else return res.status(500).json({
+            type: "error",
+            message: "product not updated"
+        })
+    } catch (error) {
+        return res.status(500).json({
+            type: "error",
+            message: error.message || "Internal server error"
+        })
+    }
+};
 
 module.exports = {
     addproduct,
     deleteProduct,
+    updateProduct
 }
+
 
 
 
