@@ -53,12 +53,19 @@ const getbycategory = async (req, res) => {
   try {
     const products = await Products.find({ category: regex });
     if (products.length === 0) {
-      handleStatusCodeError(res, 400, "Category Not Found");
+      return res
+        .status(404)
+        .send({ status: 404, message: "Category Not Found" });
     } else {
-      handleStatusCodeError(res, 200, "success", products);
+      return res
+        .status(200)
+        .send({ status: 200, message: "success", data: products });
     }
   } catch (error) {
-    handleStatusCodeError(res, 400, "Something went wrong");
+    return res.status(400).send({
+      status: 400,
+      message: "Something went wrong",
+    });
   }
 };
 
