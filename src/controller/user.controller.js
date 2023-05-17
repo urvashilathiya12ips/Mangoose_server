@@ -3,6 +3,12 @@ const bcrypt = require("bcryptjs");
 const Users = require("../../model/Users");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const {
+  handleSuccessMsg,
+  handlebadrequest,
+  handlenotfound,
+  handleemptybody,
+} = require("../../middleware/errorHandling");
 
 const signup = async (req, res) => {
   const errorlist = { message: [] };
@@ -10,7 +16,7 @@ const signup = async (req, res) => {
 
   //checking req has body
   if (Object.keys(userobj).length == 0) {
-    return res.status(500).send({ status: 500, message: "Body is empty" });
+    handleemptybody(res, "Body Is Empty");
   }
   if (!userobj.firstName) {
     errorlist.message.push("FirstName is required");
@@ -38,23 +44,17 @@ const signup = async (req, res) => {
     //checking already existing user
     let isNewUser = await Users.count({ email: userobj.email });
     if (isNewUser == 1) {
-      return res
-        .status(400)
-        .send({ status: 400, message: "Email already exist" });
+      handlebadrequest(res, "Email Alredy Exists");
     }
     const newUser = new Users(userobj);
     newUser.save();
-    return res
-      .status(201)
-      .send({ status: 201, message: "User Added", data: newUser });
+    handleSuccessMsg(res, "User Added", newUser);
   } catch (error) {
     if (error.errors) {
       //To catch DB error
-      return res
-        .status(400)
-        .send({ status: 400, message: "Unable to add user" });
+      handlebadrequest(res, "Unable to add user");
     } else {
-      return res.status(400).send({ status: 400, message: error.message });
+      handlebadrequest(res, error.message);
     }
   }
 };
@@ -63,12 +63,10 @@ const signin = async (req, res) => {
   let userobj = req.body;
   try {
     if (Object.keys(userobj).length == 0) {
-      return res.status(500).send({ status: 500, message: "Empty Body" });
+      handleemptybody(res, "Body Is Empty");
     }
     if (!userobj.email || !userobj.password) {
-      return res
-        .status(400)
-        .send({ status: 400, message: "Email and password are required" });
+      handlebadrequest(res, "Email and password are required");
     }
     let Userinfo = await Users.findOne({ email: userobj.email });
     if (Userinfo) {
@@ -78,32 +76,26 @@ const signin = async (req, res) => {
         const token = jwt.sign({ _id: Userinfo._id }, process.env.SECRET_KEY, {
           expiresIn: "30m",
         });
-        res.status(200).send({
-          status: 200,
-          message: "login success",
-          data: { token: token, user: Userinfo },
+
+        handleSuccessMsg(res, "login success", {
+          token: token,
+          user: Userinfo,
         });
       } else {
         //when password is not matched
-        return res
-          .status(400)
-          .send({ status: 400, message: "Invalid Credential" });
+        handlebadrequest(res, "Invalid Credential");
       }
     } else {
       //When user is not found
-      return res.status(400).send({ status: 400, message: "User Not found" });
+      handlenotfound(res, "User Not found");
     }
   } catch (e) {
-    return res
-      .status(400)
-      .send({ status: 400, message: "Something went wrong" });
+    handlebadrequest(res, "Something went wrong");
   }
 };
 
 const profile = async (req, res) => {
-  return res
-    .status(200)
-    .send({ status: 200, message: "User Authenticated", data: req.user });
+  handleSuccessMsg(res, "login success", req.user);
 };
 
 const profile_update = async (req, res) => {
@@ -113,27 +105,18 @@ const profile_update = async (req, res) => {
   };
   try {
     if (!updatesObj.firstName || !updatesObj.lastName) {
-      return res.status(500).send({
-        status: 500,
-        message: "FirstName and Lastname Can't be Empty",
-      });
+      handleemptybody(res, "FirstName and Lastname Can't be Empty");
     } else {
       Users.findByIdAndUpdate(req.params.id, updatesObj, { new: true })
         .then((updatedUser) => {
-          return res
-            .status(200)
-            .send({ status: 200, message: "Update Profile successfully" });
+          handleSuccessMsg(res, "Update Profile successfully");
         })
         .catch((error) => {
-          return res
-            .status(404)
-            .send({ status: 404, message: "User Not Found" });
+          handlenotfound(res, "User Not Found");
         });
     }
   } catch (e) {
-    return res
-      .status(400)
-      .send({ status: 400, message: "Something went wrong" });
+    handlebadrequest(res, "Something went wrong");
   }
 };
 

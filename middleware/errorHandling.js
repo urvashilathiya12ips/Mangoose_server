@@ -16,4 +16,21 @@ const handlenotfound = (res, customMessage) => {
   res.status(404).send({ status: 404, message: customMessage || "Not Found" });
 };
 
-module.exports = { handleSuccessMsg, handlenotfound, handlebadrequest };
+const handleforbidden = (res, customMessage) => {
+  res
+    .status(403)
+    .send({ status: 403, message: customMessage || "resource is forbidden" });
+};
+
+const handleemptybody = (res, customMessage) => {
+  res
+    .status(500)
+    .send({ status: 500, message: customMessage || " Internal Server Error" });
+};
+module.exports = {
+  handleSuccessMsg,
+  handleforbidden,
+  handlenotfound,
+  handlebadrequest,
+  handleemptybody
+};
