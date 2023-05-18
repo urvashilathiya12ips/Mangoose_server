@@ -1,40 +1,37 @@
 const Products = require("../../model/Products");
 const Carts = require("../../model/Cart");
 const fs = require("fs");
+const {verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
 const {
-  handleSuccessMsg,
-  handlebadrequest,
-  handlenotfound,
-  handleforbidden,
-  handleemptybody,
+  handleSuccess,
+  handleForbidden,
+  handleNotFound,
+  handleBadRequest,
+  handleEmptyBody
 } = require("../../middleware/errorHandling");
 
 const addproduct = async (req, res) => {
   if (Object.keys(req.body).length == 0) {
-    handleemptybody(res, "Empty Body");
+    return handleEmptyBody(res);
   } else {
     let product = req.body;
     if (!req.file?.filename) {
-      handlebadrequest(res, "Product Image Not found");
+     return handleNotFound(res, "Product Image Not found");
     }
-    if (
-      !req.body.price ||
-      !req.body.name ||
-      !req.body.category ||
-      !req.body.stock
-    ) {
-      handlebadrequest(res, "Product Name, Price,stock,category are required");
+    let errors = verifyRequired(req, ["name", "price","stock","category"])
+    if (errors.length != 0) {
+      return handleNotFound(res, errors);
     }
     try {
       product.image = req.file.filename;
       const newProduct = new Products(product);
       await newProduct.save();
       //Product.create(product)
-      handleSuccessMsg(res, "Product Added");
+      return handleSuccess(res, "Product Added");
     } catch (error) {
       //Removeing file if product is not inserted
       fs.unlinkSync(`public/assets/images/${req.file.filename}`);
-      handlebadrequest(res, "Something went wrong");
+      return handleBadRequest(res, "Something went wrong");
     }
   }
 };
@@ -45,12 +42,12 @@ const getbycategory = async (req, res) => {
   try {
     const products = await Products.find({ category: regex });
     if (products.length === 0) {
-      handlenotfound(res, "Category Not Found");
+      return handleNotFound(res, "Category Not Found");
     } else {
-      handleSuccessMsg(res, "", products);
+      return handleSuccess(res,products);
     }
   } catch (error) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 
@@ -58,12 +55,12 @@ const getbestseller = async (req, res) => {
   try {
     const products = await Products.find({ bestSeller: true });
     if (products.length === 0) {
-      handlenotfound(res, "Category Not Found");
+      return handleNotFound(res, "Category Not Found");
     } else {
-      handleSuccessMsg(res, "", products);
+      return handleSuccess(res,products);
     }
   } catch (error) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 
@@ -73,12 +70,12 @@ const deleteProduct = async (req, res) => {
     if (isdelete) {
       //removing image
       fs.unlinkSync(`public/assets/images/${isdelete.image}`);
-      handleSuccessMsg(res, "Product Deleted");
+      return handleSuccess(res, "Product Deleted");
     } else {
-      handlenotfound(res, "Record Not Found");
+      return handleNotFound(res, "Product Not Found");
     }
-  } catch (e) {
-    handlebadrequest(res, "Something went wrong");
+  } catch (error) {
+    return handleBadRequest(res, "Something went wrong");
   }
 };
 
@@ -87,11 +84,11 @@ const addtocart = async (req, res) => {
   const { product_id } = req.body;
   // return res.send({user_id,product_id})
   if (!product_id) {
-    handlenotfound(res, "Product Id is Required");
+    return handleNotFound(res, "Product id is Required");
   }
   alreadyInserted = await Carts.count({ user_id, product_id });
   if (alreadyInserted != 0) {
-    handleforbidden(res, "Alredy Inserted");
+    return handleForbidden(res, "Already inserted");
   }
   try {
     let newCart = new Carts({
@@ -100,9 +97,9 @@ const addtocart = async (req, res) => {
       qty: 1,
     });
     await newCart.save();
-    handleSuccessMsg(res, "Product Added Sucessful");
+    return handleSuccess(res, "Product inserted");
   } catch (error) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 
@@ -113,9 +110,9 @@ const getUserCart = async (req, res) => {
       path: "product_id",
       options: { strictPopulate: false },
     });
-    handleSuccessMsg(res, "", UserProduct);
+    return handleSuccess(res,UserProduct);
   } catch (error) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 
@@ -124,7 +121,7 @@ const removeFromCart = async (req, res) => {
   let user_id = req.user.id;
   let product_id = req.params.productid;
   if (!product_id) {
-    handlebadrequest(res, "Product Id is required");
+    return handleNotFound(res, "Product id is required");
   }
   try {
     const result = await Carts.deleteOne({
@@ -132,30 +129,30 @@ const removeFromCart = async (req, res) => {
       product_id: product_id,
     });
     if (result.deletedCount === 0) {
-      handlebadrequest(res, "Invalid Product Id");
+      return handleBadRequest(res, "Invalid product id");
     }
-    handleSuccessMsg(res, "Product Remove successful");
+    return handleSuccess(res, "Product removed");
   } catch (error) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 
 const updatecart = (req, res) => {
   let cart_id = req.params.cartid;
   if (Object.keys(req.body).length == 0) {
-    handleemptybody(res, "Empty Body");
+    return handleEmptyBody(res, "Empty Body");
   }
   Carts.updateOne({ _id: cart_id }, { qty: req.body.qty })
     .then((result) => {
       console.log(result);
       if (result.matchedCount > 0) {
-        handleSuccessMsg(res, "Update");
+        return handleSuccess(res, "Update");
       } else {
-        handlebadrequest(res, "Invalid Product Id");
+        return handleBadRequest(res, "Invalid Product Id");
       }
     })
     .catch((error) => {
-      handlebadrequest(res, "Something went wrong");
+      return handleBadRequest(res, "Something went wrong");
     });
 };
 
@@ -165,12 +162,12 @@ const searchbyname = async (req, res) => {
   try {
     const results = await Products.find({ name: regex });
     if (results.length === 0) {
-      handlenotfound(res, "product not found");
+      return handleNotFound(res, "product not found");
     } else {
-      handleSuccessMsg(res, "", results);
+      return handleSuccess(res,results);
     }
   } catch (error) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 

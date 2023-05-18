@@ -1,58 +1,39 @@
-const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const Users = require("../../model/Users");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const {verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
 const {
-  handleSuccessMsg,
-  handlebadrequest,
-  handlenotfound,
-  handleemptybody,
+  handleSuccess,
+  handleNotFound,
+  handleBadRequest,
+  handleEmptyBody
 } = require("../../middleware/errorHandling");
 
 const signup = async (req, res) => {
-  const errorlist = { message: [] };
   let userobj = req.body;
-
   //checking req has body
-  if (Object.keys(userobj).length == 0) {
-    return handleemptybody(res, "Body Is Empty");
-  }
-  if (!userobj.firstName) {
-    errorlist.message.push("FirstName is required");
-  }
-  if (!userobj.lastName) {
-    errorlist.message.push("LastName is required");
-  }
-  if (!userobj.email) {
-    errorlist.message.push("Email is required");
-  } else {
-    if (!validator.isEmail(userobj.email)) {
-      errorlist.message.push("Invalid Email");
-    }
-  }
-  if (!userobj.password) {
-    errorlist.message.push("Password is required");
-  }
   try {
-    if (errorlist.message.length != 0) {
-      //throw ("Error", errorlist);
-      return handlebadrequest(res, errorlist.message);
+    if (Object.keys(userobj).length == 0) {
+      return handleEmptyBody(res);
+    }
+    let errors = verifyRequired(req, ["firstName", "lastName", "email", "password"])
+    if (errors.length != 0) {
+      return handleNotFound(res, errors);
     }
     //Encrypting the password
     userobj.password = await bcrypt.hash(userobj.password, 7);
 
     //checking already existing user
-    let isNewUser = await Users.count({ email: userobj.email });
-    if (isNewUser == 1) {
-      return handlebadrequest(res, "Email Alredy Exists");
+    let isNewUser = isExistingUser(userobj.email);
+    if (isNewUser) {
+      return handleBadRequest(res, "Email Alredy Exists");
     }
     const newUser = new Users(userobj);
     newUser.save();
-    return handleSuccessMsg(res, "User Added", newUser);
+    return handleSuccess(res, "User Added", newUser);
   } catch (error) {
-    //To catch DB error
-    return handlebadrequest(res, "Unable to add user");
+    return handleBadRequest(res, "Unable add user");
   }
 };
 
@@ -60,12 +41,15 @@ const signin = async (req, res) => {
   let userobj = req.body;
   try {
     if (Object.keys(userobj).length == 0) {
-      handleemptybody(res, "Body Is Empty");
+      return handleEmptyBody(res);
     }
-    if (!userobj.email || !userobj.password) {
-      handlebadrequest(res, "Email and password are required");
+    //Validations
+    let errors = verifyRequired(req, ["email", "password"])
+    if (errors.length != 0) {
+      return handleNotFound(res, errors);
     }
-    let Userinfo = await Users.findOne({ email: userobj.email });
+
+    let Userinfo = await fetchUser(userobj.email)
     if (Userinfo) {
       const isMatch = await bcrypt.compare(userobj.password, Userinfo.password);
       if (isMatch) {
@@ -73,47 +57,46 @@ const signin = async (req, res) => {
         const token = jwt.sign({ _id: Userinfo._id }, process.env.SECRET_KEY, {
           expiresIn: "30m",
         });
-
-        handleSuccessMsg(res, "login success", {
+        return handleSuccess(res, "login success", {
           token: token,
           user: Userinfo,
         });
       } else {
         //when password is not matched
-        handlebadrequest(res, "Invalid Credential");
+        return handleBadRequest(res, "Invalid Credential");
       }
     } else {
       //When user is not found
-      handlenotfound(res, "User Not found");
+      return handleNotFound(res, "User Not found");
     }
   } catch (e) {
-    handlebadrequest(res, "Something went wrong");
+    handleBadRequest(res, "Something went wrong");
   }
 };
 
 const profile = async (req, res) => {
-  handleSuccessMsg(res, "login success", req.user);
+  return handleSuccess(res, "login success", req.user);
 };
 
 const profile_update = async (req, res) => {
-  const updatesObj = {
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-  };
   try {
-    if (!updatesObj.firstName || !updatesObj.lastName) {
-      handleemptybody(res, "FirstName and Lastname Can't be Empty");
+    if (Object.keys(req.body).length == 0) {
+      return handleEmptyBody(res);
     } else {
-      Users.findByIdAndUpdate(req.params.id, updatesObj, { new: true })
+      const updatesObj = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+      };
+      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true })
         .then((updatedUser) => {
-          handleSuccessMsg(res, "Update Profile successfully");
+          return handleSuccess(res, "Profile updated");
         })
         .catch((error) => {
-          handlenotfound(res, "User Not Found");
+          return handleNotFound(res, "User Not Found");
         });
     }
   } catch (e) {
-    handlebadrequest(res, "Something went wrong");
+    return handleBadRequest(res);
   }
 };
 
