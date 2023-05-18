@@ -13,6 +13,6 @@ const verifytoken = require("../../middleware/verifytoken");
 router.post("/signup", signup);
 router.post("/signin", signin);
 router.get("/profile", verifytoken, profile);
-router.patch("/profile_update/:id", verifytoken, profile_update);
+router.patch("/profile_update", verifytoken, profile_update);
 
 module.exports = router;

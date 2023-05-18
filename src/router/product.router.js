@@ -36,6 +36,6 @@ router.post('/addtocart',verifytoken,addtocart)
 router.get('/getusercart',verifytoken,getUserCart)
 router.delete('/removefromcart/:productid',verifytoken,removeFromCart)
 router.put('/updatecart/:cartid',verifytoken,updatecart)
-router.get("/searchbyname/:name", searchbyname);
+router.get("/searchproduct/:name", searchbyname);
 
 module.exports = router;
