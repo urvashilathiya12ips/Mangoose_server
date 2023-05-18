@@ -1,7 +1,8 @@
 const Products = require("../../model/Products");
 const Carts = require("../../model/Cart");
 const fs = require("fs");
-const allFieldsRequired = require('../utils/function');
+const allFieldsRequired = require("../utils/function");
+const { default: mongoose } = require("mongoose");
 const addproduct = async (req, res) => {
   if (Object.keys(req.body).length == 0) {
     return res.status(500).send({
@@ -91,74 +92,75 @@ const getbestseller = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   try {
-    let isdelete = await Products.findByIdAndDelete(req.params.id)
+    let isdelete = await Products.findByIdAndDelete(req.params.id);
     if (isdelete) {
       //removing image
-      fs.unlinkSync(`public/assets/images/${isdelete.image}`)
+      fs.unlinkSync(`public/assets/images/${isdelete.image}`);
       return res.status(200).send({
         status: 200,
-        message: "Product deleted"
-      })
+        message: "Product deleted",
+      });
     } else {
       return res.status(404).send({
         status: 404,
-        message: "Record not found"
-      })
+        message: "Record not found",
+      });
     }
-  }
-  catch (e) {
+  } catch (e) {
     return res.status(400).send({
       status: 400,
-      message: "Something went wrong"
-    })
+      message: "Something went wrong",
+    });
   }
-}
+};
 
 const addtocart = async (req, res) => {
-  user_id = req.user.id
-  const { product_id } = req.body
+  user_id = req.user.id;
+  const { product_id } = req.body;
   // return res.send({user_id,product_id})
   if (!product_id) {
     return res.status(404).send({
       status: 404,
-      message: 'Product Id is required'
-    })
+      message: "Product Id is required",
+    });
   }
-  alreadyInserted = await Carts.count({ user_id, product_id })
+  alreadyInserted = await Carts.count({ user_id, product_id });
   if (alreadyInserted != 0) {
     return res.status(403).send({
       status: 403,
-      message: "Already inserted"
-    })
+      message: "Already inserted",
+    });
   }
   try {
     let newCart = new Carts({
       user_id,
       product_id,
-      qty: 1
-    })
-    await newCart.save()
+      qty: 1,
+    });
+    await newCart.save();
     return res.status(201).send({
       status: 201,
-      message: 'Product added'
-    })
-  }
-  catch (error) {
+      message: "Product added",
+    });
+  } catch (error) {
     return res.status(400).send({
       status: 400,
-      message: 'Unable to add product to cart',
-    })
+      message: "Unable to add product to cart",
+    });
   }
-}
+};
 
 const getUserCart = async (req, res) => {
   try {
-    user_id = req.user.id
-    let UserProduct = await Carts.find({ user_id }).populate({ path: 'product_id', options: { strictPopulate: false } })
+    user_id = req.user.id;
+    let UserProduct = await Carts.find({ user_id }).populate({
+      path: "product_id",
+      options: { strictPopulate: false },
+    });
     return res.send({
       status: 200,
       message: "Success",
-      data: UserProduct
+      data: UserProduct,
     });
   } catch (error) {
     return res.send({
@@ -166,72 +168,68 @@ const getUserCart = async (req, res) => {
       message: "Something went wrong",
     });
   }
-
-}
+};
 
 const removeFromCart = async (req, res) => {
   // const { user_id, product_id } = req.body
-  let user_id = req.user.id
+  let user_id = req.user.id;
   let product_id = req.params.productid;
   if (!product_id) {
     return res.status(400).send({
-      status:400,
-      message: 'Product Id is required'
-    })
+      status: 400,
+      message: "Product Id is required",
+    });
   }
   try {
     const result = await Carts.deleteOne({
       user_id: user_id,
-      product_id: product_id
+      product_id: product_id,
     });
     if (result.deletedCount === 0) {
       return res.status(400).send({
-        status:400,
-        message: "Invalid product_id"
-      })
+        status: 400,
+        message: "Invalid product_id",
+      });
     }
     return res.status(200).send({
-      status:200,
-      message: "Product removed"
-    })
-  }
-  catch (error) {
+      status: 200,
+      message: "Product removed",
+    });
+  } catch (error) {
     return res.status(400).send({
-      status:400,
-      message: "Something went wrong"
-    })
+      status: 400,
+      message: "Something went wrong",
+    });
   }
-}
+};
 
 const updatecart = (req, res) => {
-  let cart_id = req.params.cartid
+  let cart_id = req.params.cartid;
   if (Object.keys(req.body).length == 0) {
-      return res.status(500).send({ status:500,message: "Empty body" })
+    return res.status(500).send({ status: 500, message: "Empty body" });
   }
-  Carts.updateOne(
-    { _id: cart_id },
-    { qty: req.body.qty }
-  ).then(result => {
-    console.log(result);
+  Carts.updateOne({ _id: cart_id }, { qty: req.body.qty })
+    .then((result) => {
+      console.log(result);
       if (result.matchedCount > 0) {
-          return res.status(201).send({
-              status: 201,
-              message: "updated"
-          })
-      }
-      else {
-          return res.status(400).send({
-              status: 400,
-              message: "Invalid cart id"
-          })
-      }
-  }).catch(error => {
-      return res.status(400).send({
+        return res.status(201).send({
+          status: 201,
+          message: "updated",
+        });
+      } else {
+        return res.status(400).send({
           status: 400,
-          message: "Something went wrong"
-      })
-  })
-}
+          message: "Invalid cart id",
+        });
+      }
+    })
+    .catch((error) => {
+      return res.status(400).send({
+        status: 400,
+        message: "Something went wrong",
+      });
+    });
+};
 
 const searchbyname = async (req, res) => {
   const name = req.params.name;
@@ -256,39 +254,55 @@ const searchbyname = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-    const { filename } = req.file
-    const { name, price, stock, desc, bestSeller, category } = req.body
-    const { id } = req.params
-    try {
-
-        const isAllFieldRequired = allFieldsRequired([name, price, stock, desc, bestSeller, category])
-        if (isAllFieldRequired) return res.status(400).json({
-            type: "error",
-            message: "All fields are required."
-        })
-
-        const response = await Products.findByIdAndUpdate(id, { image: filename, ...req.body })
-
-        if (response) {
-            const data = await Products.findById(id)
-            if (!data) return res.status(404).json({
-                type: "error",
-                message: "Product not found"
-            })
-            return res.status(200).json({
-                type: "success",
-                data
-            })
-        } else return res.status(500).json({
-            type: "error",
-            message: "product not updated"
-        })
-    } catch (error) {
-        return res.status(500).json({
-            type: "error",
-            message: error.message || "Internal server error"
-        })
+  const { id } = req.params;
+  const { ...fields } = req.body;
+  try {
+    if (Object.keys(req.body).length === 0) {
+      console.log(Object.keys(req.body).length)
+      return res.status(404).send({
+        type: "error",
+        message: "Empty Body",
+      });
     }
+    const isAllFieldRequired = allFieldsRequired(Object.values(fields));
+
+    if (isAllFieldRequired)
+      return res.status(400).json({
+        type: "error",
+        message: "All fields are required.",
+      });
+
+    const letest_data = { ...req.body };
+    if (req.file) {
+      letest_data["image"] = req.file.filename;
+    }
+
+    const response = await Products.findByIdAndUpdate(id, {
+      ...letest_data,
+    });
+
+    if (response) {
+      const data = await Products.findById(id);
+      if (!data)
+        return res.status(404).json({
+          type: "error",
+          message: "Product not found",
+        });
+      return res.status(200).json({
+        type: "success",
+        data,
+      });
+    } else
+      return res.status(500).json({
+        type: "error",
+        message: "product not found",
+      });
+  } catch (error) {
+    return res.status(500).json({
+      type: "error",
+      message: error.message || "Internal server error",
+    });
+  }
 };
 
 module.exports = {
@@ -301,5 +315,5 @@ module.exports = {
   removeFromCart,
   updatecart,
   searchbyname,
-  updateProduct
+  updateProduct,
 };

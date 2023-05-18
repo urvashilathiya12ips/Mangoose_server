@@ -11,6 +11,7 @@ const {
   removeFromCart,
   updatecart,
   searchbyname,
+  updateProduct,
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -28,14 +29,15 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 ////////////Product related routes/////////////
-router.post("/addproduct", upload.single("image"), verifytoken,addproduct);
+router.post("/addproduct", upload.single("image"), verifytoken, addproduct);
 router.get("/getbycategory/:category", getbycategory);
 router.get("/getbestseller", getbestseller);
-router.delete('/deleteproduct/:id',verifytoken,deleteProduct)
-router.post('/addtocart',verifytoken,addtocart)
-router.get('/getusercart',verifytoken,getUserCart)
-router.delete('/removefromcart/:productid',verifytoken,removeFromCart)
-router.put('/updatecart/:cartid',verifytoken,updatecart)
+router.delete("/deleteproduct/:id", verifytoken, deleteProduct);
+router.post("/addtocart", verifytoken, addtocart);
+router.get("/getusercart", verifytoken, getUserCart);
+router.delete("/removefromcart/:productid", verifytoken, removeFromCart);
+router.put("/updatecart/:cartid", verifytoken, updatecart);
 router.get("/searchbyname/:name", searchbyname);
+router.patch("/updateProduct/:id", upload.single("image"), updateProduct);
 
 module.exports = router;
