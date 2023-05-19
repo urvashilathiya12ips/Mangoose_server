@@ -1,7 +1,7 @@
 const Products = require("../../model/Products");
 const Carts = require("../../model/Cart");
 const fs = require("fs");
-const {verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
+const { verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
 const {
   handleSuccess,
   handleForbidden,
@@ -16,9 +16,9 @@ const addproduct = async (req, res) => {
   } else {
     let product = req.body;
     if (!req.file?.filename) {
-     return handleNotFound(res, "Product Image Not found");
+      return handleNotFound(res, "Product Image Not found");
     }
-    let errors = verifyRequired(req, ["name", "price","stock","category"])
+    let errors = verifyRequired(req, ["name", "price", "stock", "category"])
     if (errors.length != 0) {
       return handleNotFound(res, errors);
     }
@@ -44,7 +44,7 @@ const getbycategory = async (req, res) => {
     if (products.length === 0) {
       return handleNotFound(res, "Category Not Found");
     } else {
-      return handleSuccess(res,products);
+      return handleSuccess(res, products);
     }
   } catch (error) {
     return handleBadRequest(res);
@@ -57,7 +57,7 @@ const getbestseller = async (req, res) => {
     if (products.length === 0) {
       return handleNotFound(res, "Category Not Found");
     } else {
-      return handleSuccess(res,products);
+      return handleSuccess(res, products);
     }
   } catch (error) {
     return handleBadRequest(res);
@@ -110,7 +110,7 @@ const getUserCart = async (req, res) => {
       path: "product_id",
       options: { strictPopulate: false },
     });
-    return handleSuccess(res,UserProduct);
+    return handleSuccess(res, UserProduct);
   } catch (error) {
     return handleBadRequest(res);
   }
@@ -164,7 +164,7 @@ const searchbyname = async (req, res) => {
     if (results.length === 0) {
       return handleNotFound(res, "product not found");
     } else {
-      return handleSuccess(res,results);
+      return handleSuccess(res, results);
     }
   } catch (error) {
     return handleBadRequest(res);

@@ -2,12 +2,15 @@ const bcrypt = require("bcryptjs");
 const Users = require("../../model/Users");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const {verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
+const { bcryptPassword, verifyRequired, isExistingUser, fetchUser, generateResetToken, sendResetEmail } = require("../helper/validation")
 const {
   handleSuccess,
   handleNotFound,
   handleBadRequest,
-  handleEmptyBody
+  handleEmptyBody,
+
 } = require("../../middleware/errorHandling");
 
 const signup = async (req, res) => {
@@ -22,11 +25,11 @@ const signup = async (req, res) => {
       return handleNotFound(res, errors);
     }
     //Encrypting the password
-    userobj.password = await bcrypt.hash(userobj.password, 7);
+    userobj.password = await bcryptPassword(userobj.password)
 
     //checking already existing user
     let isNewUser = isExistingUser(userobj.email);
-    if (isNewUser) {
+    if (!isNewUser) {
       return handleBadRequest(res, "Email Alredy Exists");
     }
     const newUser = new Users(userobj);
@@ -100,9 +103,54 @@ const profile_update = async (req, res) => {
   }
 };
 
+const forgot_password = async (req, res) => {
+  const { email } = req.body;
+  try {
+    let isNewUser = await isExistingUser(email);
+    if (!isNewUser) {
+      return handleBadRequest(res, "User not found");
+    }
+    const resetToken = await generateResetToken();
+    let Userinfo = await fetchUser(email)
+    const setToken = {
+      forgot_token: resetToken
+    };
+    await Users.findByIdAndUpdate(Userinfo._id, setToken, { new: true })
+    const resetLink = `http://your-frontend-url/reset-password?token=${resetToken}`;
+    await sendResetEmail(Userinfo.email, resetLink);
+
+    return handleSuccess(res, "Reset password email sent", resetToken)
+  }
+  catch (error) {
+    return handleBadRequest(res);
+  }
+}
+
+
+const reset_password = async (req, res) => {
+  const { token, password } = req.body;
+  try {
+    const user = await Users.findOne({ forgot_token: token });
+    if (!user) {
+      return handleNotFound(res, 'Invalid reset token');
+    }
+    const Reset_bcrypt_Password = await bcryptPassword(password);
+    const update_password = {
+      password: Reset_bcrypt_Password,
+      forgot_token: null
+    };
+    await Users.findByIdAndUpdate(user._id, update_password, { new: true })
+    return handleSuccess(res, "Password Reset Successfully")
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+};
+
 module.exports = {
   signup,
   signin,
   profile,
   profile_update,
+  forgot_password,
+  reset_password
 };
