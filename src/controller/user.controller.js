@@ -90,7 +90,7 @@ const profile_update = async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
       };
-      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true })
+      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true }).select("-password","-email")
         .then((updatedUser) => {
           return handleSuccess(res, "Profile updated");
         })
