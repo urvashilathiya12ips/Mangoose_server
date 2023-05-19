@@ -1,5 +1,7 @@
 const Products = require("../../model/Products");
 const Carts = require("../../model/Cart");
+const Orders = require("../../model/Orders");
+const OrdersDetails = require("../../model/Order_details");
 const fs = require("fs");
 const {verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
 const {
@@ -171,6 +173,68 @@ const searchbyname = async (req, res) => {
   }
 };
 
+const createorder = async (req, res) => {
+  let user_id=req.user._id
+  //finding user product form cart
+  let productlist = await Carts.find({ user_id }).populate({
+    path: "product_id",
+    options: { strictPopulate: false },
+  });
+  if (!productlist.length > 0) {
+      return handleNotFound(res, "At least one product required in cart");
+  }
+  try {
+      let newOrder = new Orders({
+        user_id
+      });
+      //Creating a new order
+      let placedOrder=await newOrder.save();
+      const order_id = placedOrder._id
+      //Adding items to order
+      for (const product of productlist) {
+          let product_id = product.product_id._id
+    
+          let order_items = new OrdersDetails({
+            product_id,
+            order_id,
+            qty:product.qty
+          });
+          await order_items.save();
+      }
+      //Removing product from cart
+      await Carts.deleteMany({user_id});
+      return handleSuccess(res,"Order Created",{order_id});
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+}
+
+const getorderbyid = async (req, res) => {
+  let order_id=req.params.orderid
+  try {
+    user_id = req.user.id;
+    let UserOrder = await OrdersDetails.find({ order_id }).populate({
+      path: "product_id",
+      options: { strictPopulate: false },
+    });
+    console.log(UserOrder);
+    return handleSuccess(res,UserOrder);
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+}
+
+const getusersorder = async (req, res) => {
+  try {
+    user_id = req.user.id;
+    let UserOrder = await Orders.find({ user_id }).select("-updatedAt")
+    console.log(UserOrder);
+    return handleSuccess(res,UserOrder);
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+}
+
 module.exports = {
   addproduct,
   getbycategory,
@@ -181,4 +245,7 @@ module.exports = {
   removeFromCart,
   updatecart,
   searchbyname,
+  createorder,
+  getorderbyid,
+  getusersorder
 };

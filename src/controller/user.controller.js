@@ -26,7 +26,7 @@ const signup = async (req, res) => {
 
     //checking already existing user
     let isNewUser = isExistingUser(userobj.email);
-    if (isNewUser) {
+    if (!isNewUser) {
       return handleBadRequest(res, "Email Alredy Exists");
     }
     const newUser = new Users(userobj);
@@ -87,7 +87,7 @@ const profile_update = async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
       };
-      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true })
+      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true }).select("-password","-email")
         .then((updatedUser) => {
           return handleSuccess(res, "Profile updated");
         })

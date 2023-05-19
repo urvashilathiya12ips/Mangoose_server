@@ -11,10 +11,14 @@ const {
   removeFromCart,
   updatecart,
   searchbyname,
+  createorder,
+  getorderbyid,
+  getusersorder
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
 
+const path = require("path");
 //Creating a storage to store the media files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -25,7 +29,18 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png|gif/;
+    const mimeType = fileTypes.test(file.mimetype);
+    const extname = fileTypes.test(path.extname(file.originalname));
+    if (mimeType && extname) {
+      return cb(null, true);
+    }
+    cb("Invalid file type");
+  }
+});
 
 ////////////Product related routes/////////////
 router.post("/addproduct", upload.single("image"), verifytoken,addproduct);
@@ -37,5 +52,8 @@ router.get('/getusercart',verifytoken,getUserCart)
 router.delete('/removefromcart/:productid',verifytoken,removeFromCart)
 router.put('/updatecart/:cartid',verifytoken,updatecart)
 router.get("/searchproduct/:name", searchbyname);
+router.post("/createorder", verifytoken,createorder);
+router.get("/getusersorder", verifytoken,getusersorder);
+router.get("/getorderbyid/:orderid", verifytoken,getorderbyid);
 
 module.exports = router;
