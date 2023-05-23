@@ -21,14 +21,15 @@ const ProductsSchema = new Schema({
     type: Number,
     required: true,
   },
-  bestSeller:{
+  bestSeller: {
     type: Boolean,
-    default:false
+    default: false
   },
-  category:{
+  category: {
     type: String,
-    required:true,
+    required: true,
   }
+
 });
 
 const Products = mongoose.model("Products", ProductsSchema);

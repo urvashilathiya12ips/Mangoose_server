@@ -171,6 +171,8 @@ const searchbyname = async (req, res) => {
   }
 };
 
+// Get all wishlist items
+
 module.exports = {
   addproduct,
   getbycategory,

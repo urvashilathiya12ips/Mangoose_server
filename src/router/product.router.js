@@ -10,7 +10,7 @@ const {
   getUserCart,
   removeFromCart,
   updatecart,
-  searchbyname,
+  searchbyname
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
