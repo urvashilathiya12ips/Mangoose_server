@@ -159,58 +159,55 @@ const updatecart = (req, res) => {
 };
 
 const searchbyname = async (req, res) => {
-  const name = req.params.name;
+  const name = req.query.q;
   const regex = new RegExp(`.*${name}.*`, "i");
   try {
     const results = await Products.find({ name: regex });
-    if (results.length === 0) {
-      return handleNotFound(res, "product not found");
-    } else {
-      return handleSuccess(res, results);
-    }
+    return handleSuccess(res, { product: results });
+
   } catch (error) {
     return handleBadRequest(res);
   }
 };
 
 const createorder = async (req, res) => {
-  let user_id=req.user._id
+  let user_id = req.user._id
   //finding user product form cart
   let productlist = await Carts.find({ user_id }).populate({
     path: "product_id",
     options: { strictPopulate: false },
   });
   if (!productlist.length > 0) {
-      return handleNotFound(res, "At least one product required in cart");
+    return handleNotFound(res, "At least one product required in cart");
   }
   try {
-      let newOrder = new Orders({
-        user_id
+    let newOrder = new Orders({
+      user_id
+    });
+    //Creating a new order
+    let placedOrder = await newOrder.save();
+    const order_id = placedOrder._id
+    //Adding items to order
+    for (const product of productlist) {
+      let product_id = product.product_id._id
+
+      let order_items = new OrdersDetails({
+        product_id,
+        order_id,
+        qty: product.qty
       });
-      //Creating a new order
-      let placedOrder=await newOrder.save();
-      const order_id = placedOrder._id
-      //Adding items to order
-      for (const product of productlist) {
-          let product_id = product.product_id._id
-    
-          let order_items = new OrdersDetails({
-            product_id,
-            order_id,
-            qty:product.qty
-          });
-          await order_items.save();
-      }
-      //Removing product from cart
-      await Carts.deleteMany({user_id});
-      return handleSuccess(res,"Order Created",{order_id});
+      await order_items.save();
+    }
+    //Removing product from cart
+    await Carts.deleteMany({ user_id });
+    return handleSuccess(res, "Order Created", { order_id });
   } catch (error) {
     return handleBadRequest(res);
   }
 }
 
 const getorderbyid = async (req, res) => {
-  let order_id=req.params.orderid
+  let order_id = req.params.orderid
   try {
     user_id = req.user.id;
     let UserOrder = await OrdersDetails.find({ order_id }).populate({
@@ -218,7 +215,7 @@ const getorderbyid = async (req, res) => {
       options: { strictPopulate: false },
     });
     console.log(UserOrder);
-    return handleSuccess(res,UserOrder);
+    return handleSuccess(res, UserOrder);
   } catch (error) {
     return handleBadRequest(res);
   }
@@ -229,7 +226,7 @@ const getusersorder = async (req, res) => {
     user_id = req.user.id;
     let UserOrder = await Orders.find({ user_id }).select("-updatedAt")
     console.log(UserOrder);
-    return handleSuccess(res,UserOrder);
+    return handleSuccess(res, UserOrder);
   } catch (error) {
     return handleBadRequest(res);
   }

@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ 
+const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
     const fileTypes = /jpeg|jpg|png|gif/;
@@ -51,9 +51,9 @@ router.post('/addtocart', verifytoken, addtocart)
 router.get('/getusercart', verifytoken, getUserCart)
 router.delete('/removefromcart/:productid', verifytoken, removeFromCart)
 router.put('/updatecart/:cartid', verifytoken, updatecart)
-router.get("/searchproduct/:name", searchbyname);
-router.post("/createorder", verifytoken,createorder);
-router.get("/getusersorder", verifytoken,getusersorder);
-router.get("/getorderbyid/:orderid", verifytoken,getorderbyid);
+router.get("/searchproduct", searchbyname);
+router.post("/createorder", verifytoken, createorder);
+router.get("/getusersorder", verifytoken, getusersorder);
+router.get("/getorderbyid/:orderid", verifytoken, getorderbyid);
 
 module.exports = router;
