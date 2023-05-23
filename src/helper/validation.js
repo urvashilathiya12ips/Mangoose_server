@@ -1,7 +1,12 @@
 const validator = require("validator");
 const Users = require("../../model/Users");
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const bcrypt = require("bcryptjs");
 
-const verifyRequired = (req,requiredFields) => {
+
+
+const verifyRequired = (req, requiredFields) => {
     const errorMsg = []
     for (const field of requiredFields) {
         if (!req.body[field]) {
@@ -13,16 +18,67 @@ const verifyRequired = (req,requiredFields) => {
 
 const isExistingUser = async (email) => {
     let Userinfo = await Users.findOne({ email });
-    return Userinfo?true:false
+    return Userinfo ? true : false
 }
 
-const fetchUser= async(email)=>{
+const fetchUser = async (email) => {
     let Userinfo = await Users.findOne({ email });
     return Userinfo
 }
 
+const bcryptPassword = async (password) => {
+    let bcryptPass = await bcrypt.hash(password, 7);
+    return bcryptPass
+}
+const generateResetToken = () => {
+    return new Promise((resolve, reject) => {
+        crypto.randomBytes(20, (err, buffer) => {
+            if (err) {
+                reject(err);
+            } else {
+                const resetToken = buffer.toString('hex');
+                resolve(resetToken);
+            }
+        });
+    });
+};
+
+
+
+const sendResetEmail = async (recipientEmail, resetLink) => {
+    try {
+        // Create a transporter using your email service provider's SMTP settings
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            secure: false, // Set to true if using a secure connection (e.g., SSL/TLS)
+            auth: {
+                user: 'urvashil.itpath@gmail.com',
+                pass: 'rjfhsbwlwtkihvey',
+            },
+        });
+
+        // Compose the email message
+        const message = {
+            from: 'abc@gmail.com',
+            to: recipientEmail,
+            subject: 'Password Reset',
+            html: `<h2>Click <a href="${resetLink}">here</a> to reset your password.</h2>`,
+        };
+
+        // Send the email
+        const info = await transporter.sendMail(message);
+        console.log(`Reset email sent to ${recipientEmail}. Message ID: ${info.messageId}`);
+    } catch (error) {
+        console.error('Error sending reset email:', error);
+    }
+};
+
+
 module.exports = {
     isExistingUser,
     fetchUser,
-    verifyRequired
+    verifyRequired,
+    generateResetToken,
+    sendResetEmail,
+    bcryptPassword
 };  

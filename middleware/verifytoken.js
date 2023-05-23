@@ -10,7 +10,7 @@ const verifytoken = async (req, res, next) => {
         }
         const decode = jwt.verify(token, process.env.SECRET_KEY)
         if (decode) {
-            const userobj = await Users.findOne({ _id: decode._id })
+            const userobj = await Users.findOne({ _id: decode._id }).select("-password")
             req.user = userobj
             next()
         } else {

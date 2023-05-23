@@ -1,7 +1,9 @@
 const Products = require("../../model/Products");
 const Carts = require("../../model/Cart");
+const Orders = require("../../model/Orders");
+const OrdersDetails = require("../../model/Order_details");
 const fs = require("fs");
-const {verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
+const { verifyRequired, isExistingUser, fetchUser } = require("../helper/validation")
 const {
   handleSuccess,
   handleForbidden,
@@ -16,9 +18,9 @@ const addproduct = async (req, res) => {
   } else {
     let product = req.body;
     if (!req.file?.filename) {
-     return handleNotFound(res, "Product Image Not found");
+      return handleNotFound(res, "Product Image Not found");
     }
-    let errors = verifyRequired(req, ["name", "price","stock","category"])
+    let errors = verifyRequired(req, ["name", "price", "stock", "category"])
     if (errors.length != 0) {
       return handleNotFound(res, errors);
     }
@@ -44,7 +46,7 @@ const getbycategory = async (req, res) => {
     if (products.length === 0) {
       return handleNotFound(res, "Category Not Found");
     } else {
-      return handleSuccess(res,products);
+      return handleSuccess(res, products);
     }
   } catch (error) {
     return handleBadRequest(res);
@@ -57,7 +59,7 @@ const getbestseller = async (req, res) => {
     if (products.length === 0) {
       return handleNotFound(res, "Category Not Found");
     } else {
-      return handleSuccess(res,products);
+      return handleSuccess(res, products);
     }
   } catch (error) {
     return handleBadRequest(res);
@@ -110,7 +112,7 @@ const getUserCart = async (req, res) => {
       path: "product_id",
       options: { strictPopulate: false },
     });
-    return handleSuccess(res,UserProduct);
+    return handleSuccess(res, UserProduct);
   } catch (error) {
     return handleBadRequest(res);
   }
@@ -157,19 +159,78 @@ const updatecart = (req, res) => {
 };
 
 const searchbyname = async (req, res) => {
-  const name = req.params.name;
+  const name = req.query.q;
   const regex = new RegExp(`.*${name}.*`, "i");
   try {
     const results = await Products.find({ name: regex });
-    if (results.length === 0) {
-      return handleNotFound(res, "product not found");
-    } else {
-      return handleSuccess(res,results);
-    }
+    return handleSuccess(res, { product: results });
+
   } catch (error) {
     return handleBadRequest(res);
   }
 };
+
+const createorder = async (req, res) => {
+  let user_id = req.user._id
+  //finding user product form cart
+  let productlist = await Carts.find({ user_id }).populate({
+    path: "product_id",
+    options: { strictPopulate: false },
+  });
+  if (!productlist.length > 0) {
+    return handleNotFound(res, "At least one product required in cart");
+  }
+  try {
+    let newOrder = new Orders({
+      user_id
+    });
+    //Creating a new order
+    let placedOrder = await newOrder.save();
+    const order_id = placedOrder._id
+    //Adding items to order
+    for (const product of productlist) {
+      let product_id = product.product_id._id
+
+      let order_items = new OrdersDetails({
+        product_id,
+        order_id,
+        qty: product.qty
+      });
+      await order_items.save();
+    }
+    //Removing product from cart
+    await Carts.deleteMany({ user_id });
+    return handleSuccess(res, "Order Created", { order_id });
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+}
+
+const getorderbyid = async (req, res) => {
+  let order_id = req.params.orderid
+  try {
+    user_id = req.user.id;
+    let UserOrder = await OrdersDetails.find({ order_id }).populate({
+      path: "product_id",
+      options: { strictPopulate: false },
+    });
+    console.log(UserOrder);
+    return handleSuccess(res, UserOrder);
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+}
+
+const getusersorder = async (req, res) => {
+  try {
+    user_id = req.user.id;
+    let UserOrder = await Orders.find({ user_id }).select("-updatedAt")
+    console.log(UserOrder);
+    return handleSuccess(res, UserOrder);
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+}
 
 module.exports = {
   addproduct,
@@ -181,4 +242,7 @@ module.exports = {
   removeFromCart,
   updatecart,
   searchbyname,
+  createorder,
+  getorderbyid,
+  getusersorder
 };
