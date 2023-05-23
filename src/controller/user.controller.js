@@ -90,7 +90,7 @@ const profile_update = async (req, res) => {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
       };
-      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true }).select("-password","-email")
+      Users.findByIdAndUpdate(req.user._id, updatesObj, { new: true }).select("-password", "-email")
         .then((updatedUser) => {
           return handleSuccess(res, "Profile updated");
         })
@@ -104,7 +104,7 @@ const profile_update = async (req, res) => {
 };
 
 const forgot_password = async (req, res) => {
-  const { email } = req.body;
+  const { email, siteurl } = req.body;
   try {
     let isNewUser = await isExistingUser(email);
     if (!isNewUser) {
@@ -116,7 +116,7 @@ const forgot_password = async (req, res) => {
       forgot_token: resetToken
     };
     await Users.findByIdAndUpdate(Userinfo._id, setToken, { new: true })
-    const resetLink = `http://your-frontend-url/reset-password?token=${resetToken}`;
+    const resetLink = `${siteurl}?token=${resetToken}`;
     await sendResetEmail(Userinfo.email, resetLink);
 
     return handleSuccess(res, "Reset password email sent", resetToken)

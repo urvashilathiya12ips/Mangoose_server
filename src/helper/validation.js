@@ -45,7 +45,7 @@ const generateResetToken = () => {
 
 
 
-const sendResetEmail = async (recipientEmail, resetToken) => {
+const sendResetEmail = async (recipientEmail, resetLink) => {
     try {
         // Create a transporter using your email service provider's SMTP settings
         const transporter = nodemailer.createTransport({
@@ -62,8 +62,7 @@ const sendResetEmail = async (recipientEmail, resetToken) => {
             from: 'abc@gmail.com',
             to: recipientEmail,
             subject: 'Password Reset',
-            text: `Click on the following link to reset your password: http://your-frontend-url/reset-password?token=${resetToken}`,
-            html: `<p>Click <a href="http://your-frontend-url/reset-password?token=${resetToken}">here</a> to reset your password.</p>`,
+            html: `<h2>Click <a href="${resetLink}">here</a> to reset your password.</h2>`,
         };
 
         // Send the email
