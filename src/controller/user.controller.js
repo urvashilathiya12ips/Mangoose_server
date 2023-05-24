@@ -119,7 +119,7 @@ const forgot_password = async (req, res) => {
     const resetLink = `${siteurl}?token=${resetToken}`;
     await sendResetEmail(Userinfo.email, resetLink);
 
-    return handleSuccess(res, "Reset password email sent", resetToken)
+    return handleSuccess(res, "Reset password email sent", { token: resetToken })
   }
   catch (error) {
     return handleBadRequest(res);
