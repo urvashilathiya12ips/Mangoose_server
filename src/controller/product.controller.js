@@ -260,7 +260,7 @@ const getproductbyid = async (req, res) => {
         return handleSuccess(res, "Product found", { Product: product })
       })
   } catch (error) {
-    return handleBadRequest(res);
+    return handleBadRequest(res, "Invalid Product Id");
   }
 
 }
