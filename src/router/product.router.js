@@ -56,7 +56,7 @@ router.post("/createorder", verifytoken, createorder);
 router.get("/getusersorder", verifytoken, getusersorder);
 router.get("/getorderbyid/:orderid", verifytoken, getorderbyid);
 router.get("/getallProduct", getallProduct);
-router.get('/getproductbyid/:id', getproductbyid)
+router.get('/getproductbyid/:id', getproductbyid);
 
 
 
