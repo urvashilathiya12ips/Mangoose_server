@@ -11,6 +11,7 @@ const {
   handleBadRequest,
   handleEmptyBody
 } = require("../../middleware/errorHandling");
+const { reset_password } = require("./user.controller");
 
 const addproduct = async (req, res) => {
   if (Object.keys(req.body).length == 0) {
@@ -232,6 +233,39 @@ const getusersorder = async (req, res) => {
   }
 }
 
+const getallProduct = async (req, res) => {
+  try {
+    await Products.find({})
+      .then((products) => {
+        return handleSuccess(res, "All product", { product: products })
+      })
+      .catch((error) => {
+        console.log(error)
+        return handleNotFound(res, "Error in fetching Product");
+      });
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+
+}
+
+const getproductbyid = async (req, res) => {
+  const productId = req.params.id;
+  try {
+    await Products.findById(productId)
+      .then((product) => {
+        if (!product) {
+          return handleNotFound(res, "Product Not Found")
+        }
+        return handleSuccess(res, "Product found", { Product: product })
+      })
+  } catch (error) {
+    return handleBadRequest(res);
+  }
+
+}
+
+
 module.exports = {
   addproduct,
   getbycategory,
@@ -244,5 +278,7 @@ module.exports = {
   searchbyname,
   createorder,
   getorderbyid,
-  getusersorder
+  getusersorder,
+  getallProduct,
+  getproductbyid
 };
