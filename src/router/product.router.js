@@ -13,7 +13,7 @@ const {
   searchbyname,
   createorder,
   getorderbyid,
-  getusersorder
+  getusersorder, getallProduct, getproductbyid
 } = require("../controller/product.controller");
 
 const verifytoken = require("../../middleware/verifytoken");
@@ -55,5 +55,9 @@ router.get("/searchproduct", searchbyname);
 router.post("/createorder", verifytoken, createorder);
 router.get("/getusersorder", verifytoken, getusersorder);
 router.get("/getorderbyid/:orderid", verifytoken, getorderbyid);
+router.get("/getallProduct", getallProduct);
+router.get('/getproductbyid/:id', getproductbyid)
+
+
 
 module.exports = router;
