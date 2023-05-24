@@ -28,8 +28,9 @@ const signup = async (req, res) => {
     userobj.password = await bcryptPassword(userobj.password)
 
     //checking already existing user
-    let isNewUser = isExistingUser(userobj.email);
-    if (!isNewUser) {
+    let isExisting = await isExistingUser(userobj.email);
+
+    if (isExisting) {
       return handleBadRequest(res, "Email Alredy Exists");
     }
     const newUser = new Users(userobj);
@@ -39,7 +40,6 @@ const signup = async (req, res) => {
     return handleBadRequest(res, "Unable add user");
   }
 };
-
 const signin = async (req, res) => {
   let userobj = req.body;
   try {
